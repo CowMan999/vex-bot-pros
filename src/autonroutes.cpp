@@ -42,7 +42,7 @@ void autonGoalRed() {
 	mogo.set_value(true);
 	pros::delay(150);
 	conveyor.move(127);
-	pros::delay(1000);
+	pros::delay(500);
 
 	// drop mogo
 	mogo.set_value(false);
@@ -59,7 +59,7 @@ void autonGoalRed() {
 	// grab middle donut
 	moveToAuto(24.5, 48+9, speedSlow/1.35, 3);
 	conveyor.move(127);
-	pros::delay(100);
+	pros::delay(120);
 	intake.set_value(false);
 	pros::delay(300);
 

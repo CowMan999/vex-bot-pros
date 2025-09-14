@@ -9,9 +9,11 @@ const int RPM = 600;
 const float ROBOTDIA = 10.5;//12.5;
 const float WHEELDIA = 3.25;
 const float GEARRATIO = 0.75;
-const int PIDTHRESHMIN = 130;
+const int PIDTHRESHMIN = 150;
 const int PIDTHRESHMAX = 600;
-const float PIDMULT = 0.3;
+const float PIDMULT = 0.32;
+
+bool motorOverideAuton = false;
 
 //       ^ 0      
 // 90 <   > 270   (144, 144)
@@ -28,7 +30,7 @@ const float PIDMULT = 0.3;
 // (0,0)
 
 
-void moveAuto(bool forw, float distance, float speed) {
+void moveAuto(bool forw, float distance, float speed, float decelMult) {
 	float deg = 360.f*(distance/((GEARRATIO)*(WHEELDIA*M_PI)));
 
 	bool targetPositive = true;
@@ -47,6 +49,7 @@ void moveAuto(bool forw, float distance, float speed) {
 	while((targetPositive && (dist > 5)) || (!targetPositive && (dist < -5))) {
 		dist = target - (leftMotors.get_position()+rightMotors.get_position())/2.f;
 		float distS = std::abs(dist*(PIDMULT)*(1.f/speedMult));
+		distS *= 1.f/decelMult;
 		if(distS > PIDTHRESHMAX) {
 			distS = PIDTHRESHMAX;
 		} else if(distS < PIDTHRESHMIN) {
@@ -59,6 +62,11 @@ void moveAuto(bool forw, float distance, float speed) {
 		} else {
 			leftMotors.move_velocity(-distS*speedMult);
 			rightMotors.move_velocity(-distS*speedMult);
+		}
+		
+		if(motorOverideAuton) {
+			motorOverideAuton = false;
+			break;
 		}
 
 		//pros::delay(5);
@@ -87,7 +95,6 @@ void rotateToAuto(float orientation, float speed, int acc) {
 	while(movedeg < -360) movedeg +=360;
 	while (movedeg > 180) movedeg -= 360;
 	while (movedeg < -180) movedeg += 360;
-	controller.set_text(0,0, std::to_string(movedeg));
 
 	float deg = 360.f*((((M_PI*2*(ROBOTDIA/2.f))*(movedeg/360.f))/(WHEELDIA*M_PI))/(GEARRATIO));
 	float target = leftMotors.get_position() + deg;
@@ -103,6 +110,11 @@ void rotateToAuto(float orientation, float speed, int acc) {
 		if(count < 0) {
 			break;
 		}
+		if(motorOverideAuton) {
+			motorOverideAuton = false;
+			return;
+		}
+
 	}
 
 	if(--acc != 0) {
@@ -110,7 +122,7 @@ void rotateToAuto(float orientation, float speed, int acc) {
 	}
 }
 
-void moveToAuto(float x, float y, float speed, int acc, bool rev) {
+void moveToAuto(float x, float y, float speed, int acc, bool rev, float decelMult) {
 
 	pros::delay(5);
 
@@ -121,7 +133,7 @@ void moveToAuto(float x, float y, float speed, int acc, bool rev) {
 	theta += atan2(dx,dy) * 180.f/M_PI;
 	
 	rotateToAuto(theta, speed*0.9, acc);
-	moveAuto(!rev, dist, speed);
+	moveAuto(!rev, dist, speed, decelMult);
 
 	yPos = y; xPos = x;
 }

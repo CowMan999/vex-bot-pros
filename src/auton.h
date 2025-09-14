@@ -12,11 +12,14 @@ void autonGoalRed();
 
 void autonGoalBlue2();
 void autonGoalRed2();
+void autonGoalRed3();
+void autonGoalBlue3();
+void autonRingBlue2();
 
 
-void moveAuto(bool forw, float distance, float speed = 100.f);
+void moveAuto(bool forw, float distance, float speed = 100.f, float decelMult = 1);
 void rotateToAuto(float orientation, float speed = 45.f, int acc = 2);
-void moveToAuto(float x, float y, float speed = 60.f, int acc = 2, bool rev = false);
+void moveToAuto(float x, float y, float speed = 60.f, int acc = 2, bool rev = false, float decelMult = 1);
 void startPos(float x, float y, float ori);
 void startPosft(float xf, float yf, float ori);
 void startPosTile(float xf, float yf, float ori);

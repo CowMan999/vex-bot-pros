@@ -50,21 +50,48 @@ void disabled() {}
 
 void competition_initialize() {}
 
+bool seeRed() {
+	return optical.get_proximity()>=255 && optical.get_hue() > 0 && optical.get_hue() < 18;
+}
+
+
+bool seeBlue() {
+	return optical.get_proximity()>=255 && optical.get_hue() > 190 && optical.get_hue() < 240;
+}
+
 void autonomous() {
 //void opcontrol() {
 
-	//new pros::Task([&](){
-	//	while (true) {
-	//		controller.set_text(0,0,std::to_string(conveyor.get_torque()));
-	//		if(conveyor.get_torque() > 0.33) {
-	//			bool running = conveyor.get_voltage() > 0;
-	//			conveyor.move(-127);
-	//			pros::delay(250);
-	//			if(running) conveyor.move(127);
-	//			else conveyor.move(0);
-	//		}
-	//	}
-	//});
+	optical.set_led_pwm(50);
+	throwRed = true;
+	new pros::Task([&](){
+		while(true) {
+			if(!conveyorOverride) {
+				if(((throwRed && seeRed()) || (throwBlue && seeBlue()))) {
+					conveyorOverride = true;
+					
+					// async the task to prevent drive brick
+					pros::Task async([&](){
+						conveyor.move(127);
+						while(optical.get_proximity()>=255);
+						int count = 5;
+						while(count > 0) {
+							if(distance.get()>100) {
+								count--;
+							} else{
+								count = 5;
+							}
+						}
+						pros::delay(11);
+						conveyor.move(-127);
+						pros::delay(350);
+						conveyorOverride = false;
+						conveyor.move(127);
+					});
+				}
+			}
+		}
+	});
 
 	leftMotors.set_brake_mode_all(MOTOR_BRAKE_BRAKE);
 	rightMotors.set_brake_mode_all(MOTOR_BRAKE_BRAKE);
@@ -78,7 +105,7 @@ void autonomous() {
 
 	//moveAuto(false, 12, 40, 5);
 	//throwBlue = true;
-	autonGoalBlue2();
+	autonGoalBlue3();
 	//throwBlue = false;
 	//autonSkills();
 
@@ -87,13 +114,7 @@ void autonomous() {
 	//moveAuto(true, 48, 80);
 }
 
-bool seeRed() {
-	return optical.get_proximity()<120 && optical.get_hue() > 0 && optical.get_hue() < 18;
-}
 
-bool seeBlue() {
-	return optical.get_proximity()<120 && optical.get_hue() > 190 && optical.get_hue() < 240;
-}
 
 void opcontrol() {
 //void autonomous() {
@@ -104,11 +125,8 @@ void opcontrol() {
 	rightMotors.set_gearing_all(pros::motor_gearset_e_t::E_MOTOR_GEAR_BLUE);
 	conveyor.set_gearing_all(pros::motor_gearset_e_t::E_MOTOR_GEAR_BLUE);
 	wallstake.set_gearing_all(pros::motor_gearset_e_t::E_MOTOR_GEAR_GREEN);
-	optical.set_led_pwm(50);
 	wallstake.set_encoder_units(pros::E_MOTOR_ENCODER_DEGREES);
 	wallstake.tare_position();
-
-	//throwBlue = true;
 
 
 	while (true) {
@@ -133,9 +151,18 @@ void opcontrol() {
 				// async the task to prevent drive brick
 				pros::Task async([&](){
 					conveyor.move(127);
-					pros::delay(70);
+					while(optical.get_proximity()>=255);
+					int count = 5;
+					while(count > 0) {
+						if(distance.get()>100) {
+							count--;
+						} else{
+							count = 5;
+						}
+					}
+					pros::delay(8);
 					conveyor.move(-127);
-					pros::delay(400);
+					pros::delay(350);
 					conveyorOverride = false;
 				});
 			}
@@ -158,7 +185,7 @@ void opcontrol() {
 				wallStateLock = true;
 				if(wallState == wallDown) {
 					wallState = wallCatch;
-					wallstake.move_absolute(140+ (resetLB?10:0), 200);
+					wallstake.move_absolute(130-10+ (resetLB?10:0), 200);
 
 					pros::Task async([&](){
 						pros::delay(400);
@@ -167,7 +194,7 @@ void opcontrol() {
 
 				} else if(wallState == wallCatch) {
 					wallState = wallUp;
-					wallstake.move_absolute(565+140+ (resetLB?10:0), 200);
+					wallstake.move_absolute(575+130+ (resetLB?10:0), 200);
 
 					pros::Task async([&](){
 						pros::delay(800);
@@ -190,7 +217,7 @@ void opcontrol() {
 
 				} else if(wallState == wallUp) {
 					wallState = wallCatch;
-					wallstake.move_absolute(140 + (resetLB?10:0), 200);
+					wallstake.move_absolute(130-10 + (resetLB?10:0), 200);
 
 					pros::Task async([&](){
 						pros::delay(800);
@@ -218,6 +245,20 @@ void opcontrol() {
 				wallStateLockR = false;
 				resetLB = true;
 			});
+		}
+
+		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)) {
+			throwBlue = true;
+			throwRed = false;
+			controller.rumble(".");
+		} else if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)) {
+			throwBlue = false;
+			throwRed = true;
+			controller.rumble("-");
+		} else if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)) {
+			throwBlue = false;
+			throwRed = false;
+			controller.rumble("..");
 		}
 	}
 }

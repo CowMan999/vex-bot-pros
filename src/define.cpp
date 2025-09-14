@@ -4,7 +4,8 @@ pros::MotorGroup leftMotors({-5, -4, -1}, pros::MotorGears::blue, pros::MotorEnc
 pros::MotorGroup rightMotors({8, 7, 6}, pros::MotorGears::blue, pros::MotorEncoderUnits::degrees);
 pros::Motor conveyor(-18);
 pros::Motor wallstake(-20);
-pros::Motor intakeMotor(16);
+pros::Motor intakeMotor(19);
+pros::Distance distance(17);
 
 pros::Imu inertial(2);
 

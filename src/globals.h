@@ -13,5 +13,8 @@ extern pros::adi::DigitalIn limSwitch;
 extern pros::vision_signature_s_t sigRed, sigBlue;
 
 extern pros::Optical optical;
+extern pros::Distance distance;
 
 extern pros::Imu inertial;
+
+extern bool motorOverideAuton;

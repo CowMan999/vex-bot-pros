@@ -1,7 +1,7 @@
 #include "auton.h"
 
 //       ^ 0      
-// 270 <   > 90   (144, 144)
+// 90 <   > 270   (144, 144)
 //       v 180      |
 //                  v
 //   |---------------|
@@ -16,12 +16,12 @@
 
 void autonSkills() {
 
-	const int speedSlow = 35;
-	const int speedMed = 45;
-	const int speedFast = 55;
+	const int speedSlow = 65;
+	const int speedMed = 80;
+	const int speedFast = 95;
 
 	// init
-	startPosTile(0.5, 2, 90);
+	startPos(9, 48, 90);
 
 	// grab mogo
 	moveToAuto(2*12, 4*12, speedSlow/1.5, 3, true);
@@ -31,14 +31,14 @@ void autonSkills() {
 	// get donut beside
 	intakeMotor.move(127);
 	conveyor.move(127);
-	pros::delay(750);
+	pros::delay(120);
 	moveToAuto(4*12, 4*12, speedMed, 4);
-	pros::delay(500);
+	pros::delay(120);
 	moveToAuto(4*12, 2*12, speedMed, 4); // get donut under
-	pros::delay(500);
+	pros::delay(120);
 	moveToAuto(6*12, 2*12, speedMed, 4); // middle donut
 	moveToAuto(2*12, 2*12, speedMed, 4); // corner three
-	moveToAuto(2*12, 1*12, speedMed, 4); 
+	moveToAuto(2*12, 1*14, speedMed, 4); 
 	moveToAuto(3*12, 3*12, speedFast, 4); 
 
 	// move to corner and drop mogo, stop intake
